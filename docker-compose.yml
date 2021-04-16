@@ -1,0 +1,16 @@
+services:
+    quotes:
+        container_name: app
+        restart: always
+        build: .
+        ports: 
+            - "5555:5555"
+        links: 
+            - mongo
+    mongo: 
+        container_name: mongo
+        image: mongo
+        volumes: 
+            - /data/db:/data/db
+        ports: 
+            - "27017:27017"
