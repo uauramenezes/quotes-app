@@ -1,6 +1,6 @@
 services:
     quotes:
-        container_name: app
+        container_name: api
         restart: always
         build: .
         ports: 

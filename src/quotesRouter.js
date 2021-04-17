@@ -1,21 +1,30 @@
 const QuotesModel = require('./QuotesModel');
 const router = require('express').Router();
 
-router.post('/create', (req, res) => {
+router.post('/add', (req, res, next) => {
   QuotesModel.findOne({author: req.body.author})
     .then(collection => {
-      if (collection) res.status(403).json({error: "Author already created"});
-      else {
-        let quote = req.body.quote.trim() ? [req.body.quote] : [];
-        const newCollection = new QuotesModel({
-          author: req.body.author,
-          quotes: quote
-        });
-        newCollection.save()
-          .then(collection => res.status(200).json(collection))
-          .catch(err => res.status(500).json(err))
-      }
+      if (collection) return next();
+
+      let quote = req.body.quote ? [req.body.quote] : [];
+      const newCollection = new QuotesModel({
+        author: req.body.author,
+        quotes: quote
+      });
+
+      newCollection.save()
+        .then(collection => res.status(200).json(collection))
+        .catch(err => res.status(500).json(err))
     })
+    .catch(err => res.status(500).json(err))
+}, (req, res) => {
+  QuotesModel.findOneAndUpdate(
+    {author: req.body.author},
+    {$push: {quotes: req.body.quote}},
+    {new: true, upsert: true}
+  )
+    .then(collection => res.status(200).json(collection))
+    .catch(err => res.status(500).json(err))
 });
 
 router.get('/', (req, res) => {
@@ -37,19 +46,6 @@ router.get('/:author', (req, res) => {
     .catch(err => res.status(500).json(err))
 });
 
-router.put('/add', (req, res) => {
-  QuotesModel.findOneAndUpdate(
-    {author: req.body.author},
-    {$push: {quotes: req.body.quote}},
-    {new: true, upsert: true}
-  )
-    .then(collection => {
-      if (collection.length > 0) res.status(200).json(collection  );
-      else res.status(404).json({error: 'Author not found'})
-    })
-    .catch(err => res.status(500).json(err))
-});
-
 router.put('/update-author', (req, res) => {
   QuotesModel.findOneAndUpdate(
     {author: req.body.author},
@@ -65,7 +61,10 @@ router.put('/update-author', (req, res) => {
 
 router.put('/update-quote', (req, res) => {
   QuotesModel.findOneAndUpdate(
-    {author: req.body.author, quotes: req.body.quote},
+    {
+      author: req.body.author,
+      quotes: {$regex: req.body.quote, $options: 'i'}
+    },
     {quotes: req.body.newQuote},
     {new: true}
   )
@@ -73,14 +72,6 @@ router.put('/update-quote', (req, res) => {
       if (collection) res.status(200).json(collection);
       else res.status(404).json({error: 'Quote not found'});
     })
-    .catch(err => res.status(500).json(err))
-}, (req, res) => {
-  QuotesModel.findOneAndUpdate(
-    {author: req.body.author},
-    {$push: {quotes: req.body.newQuote}},
-    {new: true}
-  )
-    .then(collection => res.status(200).json(collection))
     .catch(err => res.status(500).json(err))
 })
 
