@@ -1,8 +1,13 @@
+const authorRouter = require('./authorRouter');
 const mongoose = require('mongoose');
 const express = require('express');
+const cors = require('cors');
+
 const app = express();
 
-const quotesRouter = require('./quotesRouter');
+app.use(cors());
+app.use(express.json());
+app.use('/', authorRouter);
 
 const port = 5555;
 const url = 'mongodb://mongo:27017/quotes';
@@ -18,9 +23,6 @@ const mongodb = mongoose.connection;
 
 mongodb.on('error', err => console.log(err) );
 mongodb.once('open', () => console.log(`MongoDB Connected: ${url}`) )
-
-app.use(express.json());
-app.use('/', quotesRouter);
 
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
