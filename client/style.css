@@ -1,0 +1,68 @@
+.container {
+	margin-top: 25px;
+}
+
+.navbar-brand:hover {
+	cursor: pointer;
+}
+
+.form-btn, #add-btn {
+	width: 100px !important;
+}
+
+.card {
+	width: 90%;
+	margin: 30px auto;
+	box-shadow: 0 0 5px #cecece;
+}
+
+@media screen and (max-width: 600px) {
+	.card {
+		margin: 20px 5px;
+	}
+}
+
+.quotes-form {
+	display: block;
+	width: 85%;
+	margin: auto;
+	padding: 10px;
+	border-radius: .25rem;
+	box-shadow: 0 0 10px #cecece;
+}
+
+.form-control {
+	font-size: .9rem !important;
+	line-height: .9rem !important;
+}
+
+.quotes-buttons {
+	display: flex;
+	width: 100%;
+}
+
+.error-msg {
+	color: red;
+	font-size: .7rem;
+	text-align: center;
+
+	padding: 0;
+	margin-top: 5px;
+	margin-bottom: -15px;
+}
+
+.form-btn {
+	margin: auto;
+}
+
+#author {
+	font-weight: 700;
+	font-size: 1.25rem;
+}
+
+.remove-btn {
+	font-size: 8pt;
+	padding: 5px;
+	width: 55px;
+	float: right;
+}
