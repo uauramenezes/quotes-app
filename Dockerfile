@@ -1,5 +1,5 @@
 FROM node:alpine
-WORKDIR /usr/src/quotes-app
+WORKDIR /src/quotes-app
 COPY . .
 RUN npm install
 EXPOSE 5555

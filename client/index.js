@@ -1,38 +1,14 @@
+// Event Listeners
 window.onload = fetchQuotes()
-
-document.querySelector(".navbar-brand").addEventListener('click', () => {
-	clearSearchInput();
-	removeCard('all');
-	fetchQuotes();
-})
-
+document.querySelector(".navbar-brand").addEventListener('click', reload)
+document.querySelector('#cancel-btn').addEventListener('click', resetForm())
+document.querySelector('#save-btn').addEventListener('click', addQuote);
+document.querySelector('#search-btn').addEventListener('click', searchAuthor);
 document.querySelector('#add-btn').addEventListener('click', () => {
 	displayForm(false);
 });
 
-document.querySelector('#cancel-btn').addEventListener('click', () => {
-	resetForm();
-})
-
-document.querySelector('#save-btn').addEventListener('click', addQuote);
-
-function fetchQuotes() {
-	fetch('http://localhost:5555/')
-	.then(response => response.json())
-	.then(data => dataLoop(data))
-	.catch(err => console.log(err))
-}
-
-function displayForm(display) {
-	let form = document.querySelector('.quotes-form');
-	form.hidden = display;
-}
-
-function resetForm() {
-	displayForm(true);
-	document.querySelector('.quotes-form').reset();
-}
-
+// Form input manipulation/validation
 function addQuote() {
 	const input = getInputValues();
 	
@@ -57,6 +33,18 @@ function validateInput([author, quote]) {
 	return false;
 }
 
+function clearSearchInput() {
+	document.querySelector("#search").value = ''
+}
+
+// Data fetching
+function fetchQuotes() {
+	fetch('http://localhost:5555/')
+	.then(response => response.json())
+	.then(data => fetchLoop(data))
+	.catch(err => console.log(err))
+}
+
 function saveQuote([authorName, quoteText]) {
 	fetch('http://localhost:5555/add', {
 		method: "POST",
@@ -67,33 +55,24 @@ function saveQuote([authorName, quoteText]) {
 		body: JSON.stringify({"author": authorName, "quote": quoteText})
 	})
 		.then(response => response.json())
-		.then(data => authorLoop(data))
+		.then(data => saveLoop(data))
 		.catch(err => console.log(err))
 }
 
-function showErrorMsg([author, quote]) {
-	let authorErrorMsg = document.querySelector('#author-error-msg');
-	let quoteErrorMsg = document.querySelector('#quote-error-msg');
-
-	authorErrorMsg.hidden = author ? true : false;
-	quoteErrorMsg.hidden = quote ? true : false;
-}
-
-function dataLoop(data) {
-	data.forEach(author => {
-		author.quoteList.forEach(quote => {
-			createCard(author._id, author.name, quote._id, quote.quote)
+function removeQuote(authorId, quoteId) {
+	fetch('http://localhost:5555/remove', {
+		method: 'PATCH',
+		headers: {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({"authorId": authorId, "quoteId": quoteId})
+	})
+		.then(response => {
+			if (response.status === 200) removeCard(quoteId)
 		})
-	});
+		.catch(err => console.log(err))
 }
-
-function authorLoop(author) {
-	author.quoteList.forEach(quote => {
-		createCard(author._id, author.name, quote._id, quote.quote)
-	});
-}
-
-document.querySelector('#search-btn').addEventListener('click', searchAuthor);
 
 function searchAuthor() {
 	let authorName = document.querySelector("#search").value;
@@ -101,13 +80,29 @@ function searchAuthor() {
 		.then(response => response.json())
 		.then(data => {
 			if (data.error) return alert("Author not found");
-			removeCard('all');
-			dataLoop(data);
 			clearSearchInput();
+			removeCard('all');
+			fetchLoop(data);
 		})
 		.catch(err => console.log(err))
 }
 
+// Data manipulation
+function fetchLoop(data) {
+	data.forEach(author => {
+		author.quoteList.forEach(quote => {
+			createCard(author._id, author.name, quote._id, quote.quote)
+		})
+	});
+}
+
+function saveLoop(author) {
+	author.quoteList.forEach(quote => {
+		createCard(author._id, author.name, quote._id, quote.quote)
+	});
+}
+
+// Card div manipulation
 function createCard(authorId, authorName, quoteId, quote) {
 	const main = document.querySelector('.container');
 
@@ -140,8 +135,8 @@ function createCard(authorId, authorName, quoteId, quote) {
 
 	cardHeader.appendChild(authorSpan);
 	cardHeader.appendChild(removeBtn);
-	cardBody.appendChild(blockquote)
-	cardBody.appendChild(quoteP)
+	blockquote.appendChild(quoteP);
+	cardBody.appendChild(blockquote);
 	card.appendChild(cardHeader);
 	card.appendChild(cardBody);
 	main.insertBefore(card, main.firstChild);
@@ -149,21 +144,6 @@ function createCard(authorId, authorName, quoteId, quote) {
 	removeBtn.addEventListener('click', () => {
 		removeQuote(authorId, quoteId)
 	});
-}
-
-function removeQuote(authorId, quoteId) {
-	fetch('http://localhost:5555/remove', {
-		method: 'PATCH',
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({"authorId": authorId, "quoteId": quoteId})
-	})
-		.then(response => {
-			if (response.status === 200) removeCard(quoteId)
-		})
-		.catch(err => console.log(err))
 }
 
 function removeCard(id) {
@@ -177,6 +157,29 @@ function removeCard(id) {
 	}
 }
 
-function clearSearchInput() {
-	document.querySelector("#search").value = ''
+// Error Messages
+function showErrorMsg([author, quote]) {
+	let authorErrorMsg = document.querySelector('#author-error-msg');
+	let quoteErrorMsg = document.querySelector('#quote-error-msg');
+
+	authorErrorMsg.hidden = author ? true : false;
+	quoteErrorMsg.hidden = quote ? true : false;
+}
+
+// Form manipulation
+function displayForm(display) {
+	let form = document.querySelector('.quotes-form');
+	form.hidden = display;
+}
+
+function resetForm() {
+	displayForm(true);
+	document.querySelector('.quotes-form').reset();
+}
+
+// Page reset
+function reload() {
+	clearSearchInput();
+	removeCard('all');
+	fetchQuotes();
 }

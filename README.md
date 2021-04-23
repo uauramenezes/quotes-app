@@ -8,7 +8,7 @@ A web app where the user can save quotes.
 * Docker
 
 ## About
-With this simple project, I wanted to practice the use of Docker in development. For that, I made a simple API with just the basics of CRUD operations.
+With this simple project, I wanted to practice the use of Docker in development with Node.js and a local MongoDb database. For that, I made a simple App with just the basics of CRUD operations.
 
 ## Setup
 To use this app you must have docker and docker-composer installed. 

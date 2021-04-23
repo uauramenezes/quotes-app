@@ -30,11 +30,12 @@
 		<div class="mb-3">
 			<label for="author-input" class="form-label">Author: </label>
 			<input type="text" class="form-control" id="author-input" placeholder="Author">
+			<p id="author-error-msg" class="error-msg" hidden>Author field can not be empty</p>
 		</div>
 		<div class="mb-3">
 			<label for="quote-input" class="form-label">Quote: </label>
 			<textarea class="form-control" id="quote-input" rows="3"></textarea>
-			<p id="error-msg" class="error-msg" hidden></p>
+			<p id="quote-error-msg" class="error-msg" hidden>Quote field can not be empty</p>
 		</div>
 		<div class="quotes-buttons">
 			<button class="btn btn-danger form-btn" type="button" id="cancel-btn">Cancel</button>
