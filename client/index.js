@@ -1,11 +1,26 @@
 // Event Listeners
 window.onload = fetchQuotes()
-document.querySelector(".navbar-brand").addEventListener('click', reload)
-document.querySelector('#cancel-btn').addEventListener('click', resetForm())
 document.querySelector('#save-btn').addEventListener('click', addQuote);
+document.querySelector(".navbar-brand").addEventListener('click', reload);
+document.querySelector('#cancel-btn').addEventListener('click', resetForm);
 document.querySelector('#search-btn').addEventListener('click', searchAuthor);
+
+document.querySelector('#search').addEventListener('click', (e) => {
+  if (e.key == 'Enter') {
+    e.preventDefault();
+    searchAuthor();
+  }
+});
+
 document.querySelector('#add-btn').addEventListener('click', () => {
 	displayForm(false);
+});
+
+document.querySelector('#author-input').addEventListener('keydown', (e) => {
+  if (e.key == 'Enter') {
+    e.preventDefault();
+    addQuote();
+  };
 });
 
 // Form input manipulation/validation
@@ -29,7 +44,7 @@ function getInputValues() {
 function validateInput([author, quote]) {
 	if (author && quote) return true;
 	
-	showErrorMsg("Fields can not be empty");
+	inputErrorMsg(author, quote);
 	return false;
 }
 
@@ -42,7 +57,7 @@ function fetchQuotes() {
 	fetch('http://localhost:5555/')
 	.then(response => response.json())
 	.then(data => fetchLoop(data))
-	.catch(err => console.log(err))
+	.catch(err => quoteErrorMsg("Oops! An error occurred!", err))
 }
 
 function saveQuote([authorName, quoteText]) {
@@ -55,11 +70,16 @@ function saveQuote([authorName, quoteText]) {
 		body: JSON.stringify({"author": authorName, "quote": quoteText})
 	})
 		.then(response => response.json())
-		.then(data => saveLoop(data))
-		.catch(err => console.log(err))
+		.then(data => {
+      removeCard('error-msg');
+      saveLoop(data);
+    })
+		.catch(err => quoteErrorMsg("Oops! An error occurred!", err))
 }
 
 function removeQuote(authorId, quoteId) {
+  if (quoteId === 'error-msg') return removeCard(quoteId);
+
 	fetch('http://localhost:5555/remove', {
 		method: 'PATCH',
 		headers: {
@@ -69,26 +89,30 @@ function removeQuote(authorId, quoteId) {
 		body: JSON.stringify({"authorId": authorId, "quoteId": quoteId})
 	})
 		.then(response => {
+      console.log(response)
 			if (response.status === 200) removeCard(quoteId)
 		})
-		.catch(err => console.log(err))
+		.catch(err => quoteErrorMsg("Oops! An error occurred!", err))
 }
 
 function searchAuthor() {
 	let authorName = document.querySelector("#search").value;
+
+  clearSearchInput();
+  removeCard('all');
+
+  if (!authorName) return fetchQuotes();
+
 	fetch(`http://localhost:5555/${authorName}`)
 		.then(response => response.json())
-		.then(data => {
-			if (data.error) return alert("Author not found");
-			clearSearchInput();
-			removeCard('all');
-			fetchLoop(data);
-		})
+		.then(data => fetchLoop(data))
 		.catch(err => console.log(err))
 }
 
 // Data manipulation
 function fetchLoop(data) {
+  if (data.error) return quoteErrorMsg(data.error);
+  
 	data.forEach(author => {
 		author.quoteList.forEach(quote => {
 			createCard(author._id, author.name, quote._id, quote.quote)
@@ -97,6 +121,8 @@ function fetchLoop(data) {
 }
 
 function saveLoop(author) {
+  if (author.error) return quoteErrorMsg(author.error);
+
 	author.quoteList.forEach(quote => {
 		createCard(author._id, author.name, quote._id, quote.quote)
 	});
@@ -158,12 +184,19 @@ function removeCard(id) {
 }
 
 // Error Messages
-function showErrorMsg([author, quote]) {
+function inputErrorMsg([author, quote]) {
 	let authorErrorMsg = document.querySelector('#author-error-msg');
 	let quoteErrorMsg = document.querySelector('#quote-error-msg');
 
 	authorErrorMsg.hidden = author ? true : false;
 	quoteErrorMsg.hidden = quote ? true : false;
+}
+
+function quoteErrorMsg(msg, error = '') {
+  if (error !== '') console.log(error);
+  
+  removeCard('all');
+  createCard("error-card", "Quotes App", "error-msg", msg)
 }
 
 // Form manipulation

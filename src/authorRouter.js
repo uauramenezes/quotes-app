@@ -5,13 +5,13 @@ router.get('/', (req, res) => {
   AuthorModel.find()
     .then(author => {
       if (author.length > 0) res.status(200).json(author);
-      else res.status(404).json({error: 'There is no quote'})
+      else res.status(404).json({error: 'There is no quote.'});
     })
     .catch(err => res.status(500).json(err))
 })
 
 router.post('/add', (req, res, next) => {
-  AuthorModel.findOne({name: req.body.author})
+  AuthorModel.findOne({name: {$regex: req.body.author, $options: 'i'}})
     .then(author => {
       if (author) return next();
 
@@ -19,7 +19,7 @@ router.post('/add', (req, res, next) => {
         name: req.body.author
       });
 
-			newAuthor.quoteList.push({quote: req.body.quote})
+			newAuthor.quoteList.push({quote: req.body.quote});
 
       newAuthor.save()
         .then(author => res.status(200).json(author))
@@ -37,11 +37,10 @@ router.post('/add', (req, res, next) => {
 });
 
 router.get('/:author', (req, res) => {
-  const author = req.params.author.replaceAll('+', ' ');
-  AuthorModel.find({name: {$regex: author, $options: 'i'}})
+  AuthorModel.find({name: {$regex: req.params.author, $options: 'i'}})
     .then(author => {
       if (author.length > 0) res.status(200).json(author);
-      else res.status(404).json({error: 'Author not found'})
+      else res.status(404).json({error: 'Author not found.'})
     })
     .catch(err => res.status(500).json(err))
 });
@@ -54,10 +53,10 @@ router.patch('/remove', (req, res, next) => {
   )
     .then(author => {
       if (author) {
-				res.status(200).json(author);
-				if (author.quoteList.length === 1) next()
+				res.status(200);
+				if (author.quoteList.length === 1) next();
 			}
-      else res.status(404).json({error: 'Author not found'});
+      else res.status(404).json({error: 'Author not found.'});
     })
     .catch(err => res.status(500).json(err))
 }, (req, res) => {
