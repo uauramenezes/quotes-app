@@ -1,18 +1,20 @@
-const authorRouter = require('./authorRouter');
-const mongoose = require('mongoose');
+// const authorRouter = require('./authorRouter');
+// const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const router = require('./pgRouter')
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/', authorRouter);
+//app.use('/', authorRouter);
+app.use('/test', router);
 
 const port = 5555;
-const url = process.env.DB_URL;
-
+// const url = process.env.DB_URL;
+/*
 mongoose.connect(url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -24,7 +26,7 @@ const mongodb = mongoose.connection;
 
 mongodb.on('error', err => console.log(err) );
 mongodb.once('open', () => console.log(`MongoDB Connected: ${url}`) )
-
+*/
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
 });
