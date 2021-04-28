@@ -5,7 +5,7 @@ document.querySelector(".navbar-brand").addEventListener('click', reload);
 document.querySelector('#cancel-btn').addEventListener('click', resetForm);
 document.querySelector('#search-btn').addEventListener('click', searchAuthor);
 
-document.querySelector('#search').addEventListener('click', (e) => {
+document.querySelector('#search').addEventListener('keydown', (e) => {
   if (e.key == 'Enter') {
     e.preventDefault();
     searchAuthor();
@@ -54,7 +54,7 @@ function clearSearchInput() {
 
 // Data fetching
 function fetchQuotes() {
-	fetch('http://localhost:5555/')
+	fetch('https://enigmatic-mountain-90467.herokuapp.com/')
 	.then(response => response.json())
 	.then(data => {
     if (data) return fetchLoop(data);
@@ -64,7 +64,7 @@ function fetchQuotes() {
 }
 
 function saveQuote([authorName, quoteText]) {
-	fetch('http://localhost:5555/', {
+	fetch('https://enigmatic-mountain-90467.herokuapp.com/', {
 		method: "POST",
 		headers: {
 			'Accept': 'application/json',
@@ -83,13 +83,12 @@ function saveQuote([authorName, quoteText]) {
 
 function searchAuthor() {
 	let authorName = document.querySelector("#search").value;
-
   clearSearchInput();
   removeCard('all');
 
   if (!authorName) return fetchQuotes();
 
-	fetch(`http://localhost:5555/${authorName}`)
+	fetch(`https://enigmatic-mountain-90467.herokuapp.com/${authorName}`)
 		.then(response => response.json())
     .then(data => {
       if (data.length > 0) return fetchLoop(data);
@@ -101,7 +100,7 @@ function searchAuthor() {
 function removeQuote(_authorId, quoteId) {
   if (quoteId === 'error-msg') return removeCard(quoteId);
 
-	fetch(`http://localhost:5555/${quoteId}`, {
+	fetch(`https://enigmatic-mountain-90467.herokuapp.com/${quoteId}`, {
 		method: 'DELETE',
 		headers: {
 			'Accept': 'application/json',

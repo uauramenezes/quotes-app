@@ -4,19 +4,7 @@ A web app where the user can save quotes.
 ## Build with
 * Node.js
 * Express
-* MongoDB
-* Docker
+* PostgreSQL
 
 ## About
-With this simple project, I wanted to practice the use of Docker in development with Node.js and a local MongoDb database. For that, I made a simple App with just the basics of CRUD operations.
-
-## Setup
-To use this app you must have docker and docker-composer installed. 
-
-First clone this repository, start docker-composer:
-
-```
-docker-composer up --build
-```
-
-And then the API can be accessed on localhost:5555/
+With this simple project, I wanted to practice the use of PostgreSQL in development with Node.js. For that, I made a simple App with just the basics of CRUD operations.
