@@ -27,7 +27,7 @@ document.querySelector('#author-input').addEventListener('keydown', (e) => {
 function addQuote() {
 	const input = getInputValues();
 	
-	if (!validateInput(input)) return ;
+	if (!validateInput(input)) return;
 
 	clearSearchInput();
 	saveQuote(input);
@@ -38,7 +38,7 @@ function getInputValues() {
 	const author = document.querySelector('#author-input').value.trim();
 	const quote = document.querySelector('#quote-input').value.trim();
 
-	return [author, quote]
+	return [author, quote];
 }
 
 function validateInput([author, quote]) {
@@ -49,50 +49,36 @@ function validateInput([author, quote]) {
 }
 
 function clearSearchInput() {
-	document.querySelector("#search").value = ''
+	document.querySelector("#search").value = '';
 }
 
 // Data fetching
 function fetchQuotes() {
 	fetch('http://localhost:5555/')
 	.then(response => response.json())
-	.then(data => fetchLoop(data))
-	.catch(err => quoteErrorMsg("Oops! An error occurred!", err))
+	.then(data => {
+    if (data) return fetchLoop(data);
+    quoteErrorMsg("There is no quotes.");
+  })
+	.catch(err => quoteErrorMsg("Oops! An error occurred.", err))
 }
 
 function saveQuote([authorName, quoteText]) {
-	fetch('http://localhost:5555/add', {
+	fetch('http://localhost:5555/', {
 		method: "POST",
 		headers: {
 			'Accept': 'application/json',
 			'Content-Type': 'application/json'
 		},
-		body: JSON.stringify({"author": authorName, "quote": quoteText})
+		body: JSON.stringify({author: authorName, quote: quoteText})
 	})
 		.then(response => response.json())
 		.then(data => {
-      removeCard('error-msg');
-      saveLoop(data);
+      if (!data) return quoteErrorMsg("Oops! An error occurred.");
+
+      createCard(authorName, data[0].author_id, quoteText, data[0].quote_id, 'insert');
     })
-		.catch(err => quoteErrorMsg("Oops! An error occurred!", err))
-}
-
-function removeQuote(authorId, quoteId) {
-  if (quoteId === 'error-msg') return removeCard(quoteId);
-
-	fetch('http://localhost:5555/remove', {
-		method: 'PATCH',
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({"authorId": authorId, "quoteId": quoteId})
-	})
-		.then(response => {
-      console.log(response)
-			if (response.status === 200) removeCard(quoteId)
-		})
-		.catch(err => quoteErrorMsg("Oops! An error occurred!", err))
+    .catch(err => quoteErrorMsg("Oops! An error occurred.", err))
 }
 
 function searchAuthor() {
@@ -105,31 +91,41 @@ function searchAuthor() {
 
 	fetch(`http://localhost:5555/${authorName}`)
 		.then(response => response.json())
-		.then(data => fetchLoop(data))
-		.catch(err => console.log(err))
+    .then(data => {
+      if (data.length > 0) return fetchLoop(data);
+      quoteErrorMsg("Author not found.");
+    })
+    .catch(err => quoteErrorMsg("Oops! An error occurred.", err))
+}
+
+function removeQuote(_authorId, quoteId) {
+  if (quoteId === 'error-msg') return removeCard(quoteId);
+
+	fetch(`http://localhost:5555/${quoteId}`, {
+		method: 'DELETE',
+		headers: {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json'
+		}
+	})
+		.then(response => {
+			if (response.status === 200) removeCard(quoteId);
+		})
+    .catch(err => quoteErrorMsg("Oops! An error occurred.", err))
 }
 
 // Data manipulation
-function fetchLoop(data) {
+function fetchLoop(data, author='') {
   if (data.error) return quoteErrorMsg(data.error);
-  
-	data.forEach(author => {
-		author.quoteList.forEach(quote => {
-			createCard(author._id, author.name, quote._id, quote.quote)
-		})
-	});
-}
+  if (author) data[0].name = author;
 
-function saveLoop(author) {
-  if (author.error) return quoteErrorMsg(author.error);
-
-	author.quoteList.forEach(quote => {
-		createCard(author._id, author.name, quote._id, quote.quote)
-	});
+  data.forEach(e => {
+    createCard(e.name, e.author_id, e.text, e.quote_id);
+  })
 }
 
 // Card div manipulation
-function createCard(authorId, authorName, quoteId, quote) {
+function createCard(authorName, authorId, quote, quoteId, type='append') {
 	const main = document.querySelector('.container');
 
 	let card = document.createElement('div');
@@ -165,10 +161,12 @@ function createCard(authorId, authorName, quoteId, quote) {
 	cardBody.appendChild(blockquote);
 	card.appendChild(cardHeader);
 	card.appendChild(cardBody);
-	main.insertBefore(card, main.firstChild);
+
+  if (type === 'append') main.appendChild(card);
+  else main.insertBefore(card, main.firstChild);
 
 	removeBtn.addEventListener('click', () => {
-		removeQuote(authorId, quoteId)
+		removeQuote(authorId, quoteId);
 	});
 }
 
@@ -176,7 +174,9 @@ function removeCard(id) {
 	const container = document.querySelector('.container');
 	const card = document.getElementById(id);
 	
-	if (id && card) return container.removeChild(card);
+	if (id && card || id === 'error-msg') {
+    return container.removeChild(card);
+  }
 
 	while (container.firstChild) {
 		container.removeChild(container.firstChild);
@@ -196,7 +196,7 @@ function quoteErrorMsg(msg, error = '') {
   if (error !== '') console.log(error);
   
   removeCard('all');
-  createCard("error-card", "Quotes App", "error-msg", msg)
+  createCard("Quotes App", "error-card", msg, "error-msg");
 }
 
 // Form manipulation
