@@ -4,7 +4,7 @@ A web app where the user can save quotes.
 # View
 https://uauramenezes.github.io/quotes-app
 
-## Build with
+## Built with
 * Node.js
 * Express
 * PostgreSQL
