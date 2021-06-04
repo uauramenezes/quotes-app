@@ -53,10 +53,13 @@ function clearSearchInput() {
 }
 
 // Data fetching
-function fetchQuotes() {
+async function fetchQuotes() {
+  changeCursor('wait');
 	fetch('https://enigmatic-mountain-90467.herokuapp.com/')
 	.then(response => response.json())
 	.then(data => {
+    removeCard('0');
+    changeCursor('unset');
     if (data) return fetchLoop(data);
     quoteErrorMsg("There is no quotes.");
   })
@@ -83,6 +86,7 @@ function saveQuote([authorName, quoteText]) {
 
 function searchAuthor() {
 	let authorName = document.querySelector("#search").value;
+  changeCursor('wait');
   clearSearchInput();
   removeCard('all');
 
@@ -93,6 +97,7 @@ function searchAuthor() {
     .then(data => {
       if (data.length > 0) return fetchLoop(data);
       quoteErrorMsg("Author not found.");
+      changeCursor('unset');
     })
     .catch(err => quoteErrorMsg("Oops! An error occurred.", err))
 }
@@ -207,6 +212,11 @@ function displayForm(display) {
 function resetForm() {
 	displayForm(true);
 	document.querySelector('.quotes-form').reset();
+}
+
+// Cursor manipulation
+function changeCursor(style) {
+  document.body.style.cursor = style;
 }
 
 // Page reset
